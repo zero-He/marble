@@ -109,11 +109,11 @@ public class BenchMarkUtil {
   public static String generateFetchSql(String tableName, String orderBy,
                                         int limit) {
     return "SELECT * FROM "
-        + tableName
-        + " ORDER BY "
-        + orderBy
-        + " ASC LIMIT "
-        + limit;
+        + tableName;
+//        + " ORDER BY "
+//        + orderBy
+//        + " ASC LIMIT "
+//        + limit;
   }
 
   public static List<Map<String, Object>> toMapList(ResultSet resultSet)

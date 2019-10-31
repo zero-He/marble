@@ -32,11 +32,9 @@ import org.apache.flink.types.Row;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.Types;
+import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -49,24 +47,39 @@ import static org.apache.flink.api.common.typeinfo.PrimitiveArrayTypeInfo.BYTE_P
  */
 public class FlinkCollectionsEnvBenchMark {
 
-  private static final Map<Integer, TypeInformation<?>> TYPE_MAPPING;
+//  private static final Map<Integer, TypeInformation<?>> TYPE_MAPPING;
 
   static {
-    BiMap<TypeInformation<?>, Integer> m = HashBiMap.create();
-    m.put(STRING_TYPE_INFO, Types.VARCHAR);
-    m.put(BOOLEAN_TYPE_INFO, Types.BOOLEAN);
-    m.put(BYTE_TYPE_INFO, Types.TINYINT);
-    m.put(SHORT_TYPE_INFO, Types.SMALLINT);
-    m.put(INT_TYPE_INFO, Types.INTEGER);
-    m.put(LONG_TYPE_INFO, Types.BIGINT);
-    m.put(FLOAT_TYPE_INFO, Types.FLOAT);
-    m.put(DOUBLE_TYPE_INFO, Types.DOUBLE);
-    m.put(SqlTimeTypeInfo.DATE, Types.DATE);
-    m.put(SqlTimeTypeInfo.TIME, Types.TIME);
-    m.put(SqlTimeTypeInfo.TIMESTAMP, Types.TIMESTAMP);
-    m.put(BIG_DEC_TYPE_INFO, Types.DECIMAL);
-    m.put(BYTE_PRIMITIVE_ARRAY_TYPE_INFO, Types.BINARY);
-    TYPE_MAPPING = m.inverse();
+//    Map<Integer, TypeInformation<?>> TYPE_MAPPING = new HashMap<>();
+////    BiMap<TypeInformation<?>, Integer> m = HashBiMap.create();
+////    m.put(STRING_TYPE_INFO, Types.VARCHAR);
+////    m.put(BOOLEAN_TYPE_INFO, Types.BOOLEAN);
+////    m.put(BYTE_TYPE_INFO, Types.TINYINT);
+////    m.put(SHORT_TYPE_INFO, Types.SMALLINT);
+////    m.put(INT_TYPE_INFO, Types.INTEGER);
+////    m.put(LONG_TYPE_INFO, Types.BIGINT);
+////    m.put(FLOAT_TYPE_INFO, Types.FLOAT);
+////    m.put(DOUBLE_TYPE_INFO, Types.DOUBLE);
+////    m.put(SqlTimeTypeInfo.DATE, Types.DATE);
+////    m.put(SqlTimeTypeInfo.TIME, Types.TIME);
+////    m.put(SqlTimeTypeInfo.TIMESTAMP, Types.TIMESTAMP);
+////    m.put(BIG_DEC_TYPE_INFO, Types.DECIMAL);
+////    m.put(BYTE_PRIMITIVE_ARRAY_TYPE_INFO, Types.BINARY);
+////    TYPE_MAPPING = m.inverse();
+//
+//    TYPE_MAPPING.put(Types.VARCHAR,STRING_TYPE_INFO );
+//    TYPE_MAPPING.put(Types.BOOLEAN,BOOLEAN_TYPE_INFO );
+//    TYPE_MAPPING.put(Types.TINYINT,INT_TYPE_INFO );
+//    TYPE_MAPPING.put(Types.SMALLINT,SHORT_TYPE_INFO );
+//    TYPE_MAPPING.put(Types.INTEGER,INT_TYPE_INFO );
+//    TYPE_MAPPING.put(Types.BIGINT,LONG_TYPE_INFO );
+//    TYPE_MAPPING.put(Types.FLOAT,FLOAT_TYPE_INFO );
+//    TYPE_MAPPING.put(Types.DOUBLE,DOUBLE_TYPE_INFO);
+//    TYPE_MAPPING.put(Types.DATE,SqlTimeTypeInfo.DATE );
+//    TYPE_MAPPING.put( Types.TIME,SqlTimeTypeInfo.TIME);
+//    TYPE_MAPPING.put(Types.TIMESTAMP,SqlTimeTypeInfo.TIMESTAMP );
+//    TYPE_MAPPING.put(Types.DECIMAL,BIG_DEC_TYPE_INFO );
+//    TYPE_MAPPING.put(Types.BINARY,BYTE_PRIMITIVE_ARRAY_TYPE_INFO);
   }
 
   @BeforeClass
@@ -75,6 +88,36 @@ public class FlinkCollectionsEnvBenchMark {
   }
 
   public RowTypeInfo typeOfJdbc(ResultSetMetaData metaData) throws Exception {
+    Map<Integer, TypeInformation<?>> TYPE_MAPPING = new HashMap<>();
+//    BiMap<TypeInformation<?>, Integer> m = HashBiMap.create();
+//    m.put(STRING_TYPE_INFO, Types.VARCHAR);
+//    m.put(BOOLEAN_TYPE_INFO, Types.BOOLEAN);
+//    m.put(BYTE_TYPE_INFO, Types.TINYINT);
+//    m.put(SHORT_TYPE_INFO, Types.SMALLINT);
+//    m.put(INT_TYPE_INFO, Types.INTEGER);
+//    m.put(LONG_TYPE_INFO, Types.BIGINT);
+//    m.put(FLOAT_TYPE_INFO, Types.FLOAT);
+//    m.put(DOUBLE_TYPE_INFO, Types.DOUBLE);
+//    m.put(SqlTimeTypeInfo.DATE, Types.DATE);
+//    m.put(SqlTimeTypeInfo.TIME, Types.TIME);
+//    m.put(SqlTimeTypeInfo.TIMESTAMP, Types.TIMESTAMP);
+//    m.put(BIG_DEC_TYPE_INFO, Types.DECIMAL);
+//    m.put(BYTE_PRIMITIVE_ARRAY_TYPE_INFO, Types.BINARY);
+//    TYPE_MAPPING = m.inverse();
+
+    TYPE_MAPPING.put(Types.VARCHAR,STRING_TYPE_INFO );
+    TYPE_MAPPING.put(Types.BOOLEAN,BOOLEAN_TYPE_INFO );
+    TYPE_MAPPING.put(Types.TINYINT,INT_TYPE_INFO );
+    TYPE_MAPPING.put(Types.SMALLINT,SHORT_TYPE_INFO );
+    TYPE_MAPPING.put(Types.INTEGER,INT_TYPE_INFO );
+    TYPE_MAPPING.put(Types.BIGINT,LONG_TYPE_INFO );
+    TYPE_MAPPING.put(Types.FLOAT,FLOAT_TYPE_INFO );
+    TYPE_MAPPING.put(Types.DOUBLE,DOUBLE_TYPE_INFO);
+    TYPE_MAPPING.put(Types.DATE,SqlTimeTypeInfo.DATE );
+    TYPE_MAPPING.put( Types.TIME,SqlTimeTypeInfo.TIME);
+    TYPE_MAPPING.put(Types.TIMESTAMP,SqlTimeTypeInfo.TIMESTAMP );
+    TYPE_MAPPING.put(Types.DECIMAL,BIG_DEC_TYPE_INFO );
+    TYPE_MAPPING.put(Types.BINARY,BYTE_PRIMITIVE_ARRAY_TYPE_INFO);
     int columnCount = metaData.getColumnCount();
     List<String> columnNameList = new ArrayList<>();
     List<TypeInformation> columnTypeList = new ArrayList<>();
@@ -92,6 +135,7 @@ public class FlinkCollectionsEnvBenchMark {
   private static double sqlQuery(BatchTableEnvironment tEnv, String sql) throws Throwable {
     Stopwatch s = Stopwatch.createStarted();
     Table t2 = tEnv.sqlQuery(sql);
+
     System.out.println("sqlQuery result table size:" + tEnv.toDataSet(t2, Row.class).collect().size());
     s.stop();
     return s.elapsed(TimeUnit.MICROSECONDS) * 0.001;
@@ -163,6 +207,51 @@ public class FlinkCollectionsEnvBenchMark {
     }
   }
 
+  @Test
+  public void test() throws Throwable {
+    Stopwatch s = Stopwatch.createStarted();
+    Class.forName("com.mysql.jdbc.Driver");
+    Connection connection = DriverManager.getConnection("jdbc:mysql://101.37.106.150:3306/my_wallet","root","Xhj@091988");
+    ExecutionEnvironment env = ExecutionEnvironment.createCollectionsEnvironment();
+    BatchTableEnvironment btenv = BatchTableEnvironment.getTableEnvironment(env);
+    String sql = BenchMarkUtil.generateFetchSql("lsd_stage_borrow_bill","",1);
+    ResultSet set = connection.createStatement().executeQuery(sql);
+    RowTypeInfo typeInfo = typeOfJdbc(set.getMetaData());
+
+    DataSet ds = env.createInput(
+            JDBCInputFormat.buildJDBCInputFormat()
+            .setDrivername("com.mysql.jdbc.Driver")
+            .setDBUrl("jdbc:mysql://101.37.106.150:3306/my_wallet")
+            .setQuery(sql)
+            .setUsername("root")
+            .setPassword("Xhj@091988")
+            .setRowTypeInfo(typeInfo)
+            .finish()
+    );
+    ds.collect();
+    btenv.registerDataSet("lsd_stage_borrow_bill",ds);
+
+    String sql1 = BenchMarkUtil.generateFetchSql("lsd_stage_borrow","",1);
+    ResultSet set1 = connection.createStatement().executeQuery(sql1);
+    RowTypeInfo typeInfo1 = typeOfJdbc(set1.getMetaData());
+
+    DataSet ds1 = env.createInput(
+            JDBCInputFormat.buildJDBCInputFormat()
+                    .setDrivername("com.mysql.jdbc.Driver")
+                    .setDBUrl("jdbc:mysql://101.37.106.150:3306/my_wallet")
+                    .setQuery(sql1)
+                    .setUsername("root")
+                    .setPassword("Xhj@091988")
+                    .setRowTypeInfo(typeInfo1)
+                    .finish()
+    );
+    ds.collect();
+    btenv.registerDataSet("lsd_stage_borrow",ds1);
+
+    s.stop();
+    System.out.println(s.elapsed(TimeUnit.MICROSECONDS) * 0.001 + sqlQuery(btenv, "SELECT count(id)   from ( select id FROM lsd_stage_borrow WHERE 1 = 1 and user_id = 84607 and ((borrow_type = 1  ) and (status = 5  ) )   and gmt_create <= '2019-10-08 11:09:58' ) tmp"));
+
+  }
 
   @Test
   public void testProjection() throws Throwable {

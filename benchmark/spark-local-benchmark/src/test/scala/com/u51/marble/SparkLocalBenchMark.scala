@@ -19,7 +19,8 @@ package com.u51.marble
 import java.util.concurrent.TimeUnit
 
 import com.google.common.base.Stopwatch
-import org.apache.spark.sql.SparkSession
+import com.mongodb.spark.MongoSpark
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.storage.StorageLevel
 import org.junit.{BeforeClass, Test}
 
@@ -41,16 +42,18 @@ class SparkLocalBenchMark {
   var spark: SparkSession = new SparkSession.Builder().appName("spark-local-benchmark")
       .config("spark.ui.enabled", false)
       .config("spark.sql.warehouse.dir", SPARK_WORK_DIR)
-      .config("hive.exec.scratchdir", SPARK_WORK_DIR + "/hive")
+//      .config("hive.exec.scratchdir", SPARK_WORK_DIR + "/hive")
       .config("spark.sql.shuffle.partitions", 1)
       .config("spark.default.parallelism", 1)
+//      .config("spark.mongodb.input.uri", "mongodb://root:c4N3pVMN8zfBwhOC@dds-bp1f73a9a0d880741.mongodb.rds.aliyuncs.com:3717/admin.ALL-VOICES-LIST?authSource=admin")
       .master("local[1]")
+      .enableHiveSupport()
       .getOrCreate()
 
 
   def sqlQuery(sql: String): Double = {
     val s = Stopwatch.createStarted
-    val resultTable = spark.sql(sql).collect()
+    val resultTable: Array[Row] = spark.sql(sql).collect()
     System.out.println("sqlQuery result table size:" + resultTable.length)
     s.stop
     s.elapsed(TimeUnit.MICROSECONDS) * 0.001
@@ -149,6 +152,17 @@ class SparkLocalBenchMark {
     System.out.println(runSqlForJoin(15000, sql))
   }
 
+  @Test
+  def hetest(): Unit = {
+    val sc =spark.sparkContext
+//    val rdd: DataFrame = MongoSpark.load(spark)
+//    println(rdd.show(10))
+    val s = Stopwatch.createStarted()
+    spark.sql("SELECT * from ods.yys_call_detail_list_hbase LIMIT 10").createOrReplaceTempView("yys_call_detail_list")
+    spark.sql("SELECT count(1)  from yys_call_detail_list where  call_type='DIALED' and SUBSTRING(call_time,1,10)>'2019-09-28'").show()
+    s.stop()
+    println(s.elapsed(TimeUnit.MICROSECONDS) * 0.001)
+  }
 }
 
 // End SparkLocalBenchMark.java
